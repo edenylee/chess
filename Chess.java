@@ -10,45 +10,45 @@ import javax.swing.JOptionPane;
 import javax.swing.Timer;
 
 public class Chess extends Frame {
-    private Timer timer = null; //타이머
+    private Timer timer = null; //timer
 
-    private final int sql=150; //체스판의 정사각형 한 변의 길이
-    private final int w=1230, h=1430; //가로 세로 설정
-    piece board[][]= new piece [8][8]; //말을 올려 놓을 보드
+    private final int sql=150; //size of square
+    private final int w=1230, h=1430; //window size
+    piece board[][]= new piece [8][8]; //board
 
-    private boolean[][] onClick = new boolean [8][8]; //클릭되었는지 확인
-    private boolean firstClick = true; //첫 번째 클릭인지 확인
-    private boolean Moveable[][] = new boolean[8][8]; //특정한 말이 움직일 수 있는 공간인지 확인
+    private boolean[][] onClick = new boolean [8][8]; //checks for clicks
+    private boolean firstClick = true; //checks if first click
+    private boolean Moveable[][] = new boolean[8][8]; //checks if certain piece can move
 
-    private boolean booleanundo = true; //뒤로가기 허용 여부(사용자 설정 가능)
-    private boolean bqc, bkc, wqc, wkc; //캐슬링 가능 여부(bqc는 흑색 퀸쪽 캐슬링 이라는 의미)
+    private boolean booleanundo = true; //allows undo
+    private boolean bqc, bkc, wqc, wkc; //allows cancels
 
-    private String turn = "white"; //누구의 순서인지 나타내는 변수
-    private String[] NumtoAl = {"a", "b", "c", "d", "e", "f", "g", "h"}; //말의 이동을 표기하기 위한 배열
+    private String turn = "white"; //turns
+    private String[] NumtoAl = {"a", "b", "c", "d", "e", "f", "g", "h"}; //for piece's movement
 
     private int ci, cj;
-    private int MaxTime=300; //최대 시간 제한
-    private int Inc=1; //매 수마다 추가되는 시간
-    private int wtime, btime; //백과 흑이 각각 남은 시간
-    private int nmoves; //총 움직임 횟수
+    private int MaxTime=300; //max time
+    private int Inc=1; //time added for each turn
+    private int wtime, btime; //time left for white and black pieces
+    private int nmoves; //total number of moves
 
-    private Label lLastMove = null ; //마지막 수를 나타내는 라벨
-    private Label lWhiteTimer = null; //백의 남은 시간을 나타내는 라벨
-    private Label lBlackTimer = null; //흑의 남은 시간을 나타내는 라벨
+    private Label lLastMove = null ; //last turn
+    private Label lWhiteTimer = null; //time left for white piece
+    private Label lBlackTimer = null; //time left for black piece
 
-    private JButton bUndo = null; //뒤로가기 버튼
-    private JButton bForfeit = null; //항복 버튼
-    private JButton bDraw = null; //무승부 권유 버튼
-    private JButton bStart = null; //재시작 버튼
-    private JButton bSettime = null; //시간 설정 버튼
-    private JButton bSetundo = null; //물리기 유무 버튼
+    private JButton bUndo = null; //undo
+    private JButton bForfeit = null; //forfeit match
+    private JButton bDraw = null; //draw
+    private JButton bStart = null; //restart
+    private JButton bSettime = null; //timer settings
+    private JButton bSetundo = null; //undo
 
-    private JButton bBoard[][] = new JButton[8][8]; //전체 보드
+    private JButton bBoard[][] = new JButton[8][8]; //board
 
-    private ImageIcon icon_light = new ImageIcon("pic/light.png"); //밝은 칸을 나타내는 icon
-    private ImageIcon icon_dark = new ImageIcon("pic/dark.png"); //어두운 칸을 나타내는 icon
+    private ImageIcon icon_light = new ImageIcon("pic/light.png"); //icon for light background
+    private ImageIcon icon_dark = new ImageIcon("pic/dark.png"); //icon for dark background
 
-    class BoardState{ //체스판의 상태를 저장해 놓기 위한 클래스
+    class BoardState{ //check status of board
         int board[][] = new int[8][8];
         String turn, lastmove;
         boolean bqc, bkc, wqc, wkc;
@@ -56,13 +56,13 @@ public class Chess extends Frame {
 
     BoardState[] bstate = new BoardState[600];
 
-    abstract class piece{ //말 클래스 구현
-        int i, j; //말의 위치
-        String color, boardcolor, name; //말의 색, 말이 위치한 보드 칸의 색, 말의 종류
-        int ind; //말의 종류를 나타내는 정수 (BoardState 클래스를 위해)
-        ImageIcon Icon, clickIcon; //그냥 있을 때 아이콘, 클릭되었을 때 아이콘
+    abstract class piece{ //pieces
+        int i, j; //location of pieces
+        String color, boardcolor, name; //piece color, color of square, type of piece
+        int ind; 
+        ImageIcon Icon, clickIcon; //icon, icon when clicked
 
-        void move(int a, int b){ //말을 특정 위치로 이동
+        void move(int a, int b){ //moves piece to specific location
             this.i=a;
             this.j=b;
             if ((this.i+this.j)%2==0) this.boardcolor = "light";
@@ -71,11 +71,11 @@ public class Chess extends Frame {
             Icon=new ImageIcon("pic/"+this.color+"_"+this.name+"_"+this.boardcolor+".png");
         }
 
-        abstract void setMoveable(); //움직일 수 있는 공간 결정
+        abstract void setMoveable(); //decides which space to move to
     }
 
-    class Pawn extends piece{ //폰 클래스 구현
-        Pawn(int a, int b, String c){ //생성자로 초기값 결정
+    class Pawn extends piece{ 
+        Pawn(int a, int b, String c){ //resets
             this.i=a;
             this.j=b;
             this.color=c;
@@ -90,13 +90,13 @@ public class Chess extends Frame {
         }
 
         @Override
-        void move(int a, int b){ //프로모션 설정을 위한 Overriding
+        void move(int a, int b){ //override
             this.i=a;
             this.j=b;
             if ((this.i+this.j)%2==0) this.boardcolor = "light";
             else this.boardcolor = "dark";
 
-            if(this.i==0 || this.i==7){ //보드의 끝에 도달했을 때 원하는 말로 교환
+            if(this.i==0 || this.i==7){ //changes to wanted piece if piece reaches end
                 Object[] promotion = {"Knight", "Bishop", "Rook", "Queen"};
                 Label label = new Label("Promote to another piece: ");
                 label.setFont(new Font("Arial", Font.PLAIN, 20));
@@ -112,16 +112,16 @@ public class Chess extends Frame {
                     for(int j=0; j<8; j++){
                         if(this.i+1 == i){
                             if(board[i][j]==null){
-                                if(j==this.j) Moveable[i][j]=true; //폰은 앞으로 한 칸 전진할 수 있다
+                                if(j==this.j) Moveable[i][j]=true; //moves pawn one square
                                 else{}
                             }
-                            else if(board[i][j].color=="white" && (Math.abs(this.j-j)==1)) Moveable[i][j]=true; //폰은 상대 말을 잡을 때에는 대각선으로 한 칸 이동한다
+                            else if(board[i][j].color=="white" && (Math.abs(this.j-j)==1)) Moveable[i][j]=true; //pawn moves diagonal to capture opponent
                             else Moveable[i][j]=false;
                         }
                         else Moveable[i][j]=false;
                     }
                 }
-                if(this.i==1 && board[3][j]==null) Moveable[3][j]=true; //처음 움직이는 폰은 두 칸 움직일 수 있다
+                if(this.i==1 && board[3][j]==null) Moveable[3][j]=true; //first pawn moves two squares
             }
             else{
                 for(int i=0; i<8; i++){
@@ -142,8 +142,8 @@ public class Chess extends Frame {
         }
     }
 
-    class Knight extends piece{ //나이트 클래스 구현
-        Knight(int a, int b, String c){ //생성자로 초기값 설정
+    class Knight extends piece{ //knight
+        Knight(int a, int b, String c){ //resets
             this.i=a;
             this.j=b;
             this.color=c;
@@ -160,9 +160,9 @@ public class Chess extends Frame {
             if(this.color=="black"){
                 for(int i=0; i<8; i++) {
                     for (int j = 0; j < 8; j++) {
-                        if ((Math.abs(this.i-i) == 2 && Math.abs(this.j-j) == 1) || (Math.abs(this.i-i) == 1 && Math.abs(this.j-j) == 2)) { //나이트는 한 방향으로 두 칸 이동하고 수직한 방향으로 한 칸 이동한다
+                        if ((Math.abs(this.i-i) == 2 && Math.abs(this.j-j) == 1) || (Math.abs(this.i-i) == 1 && Math.abs(this.j-j) == 2)) { //movements for knight
                             if (board[i][j] == null) Moveable[i][j] = true;
-                            else if (board[i][j].color == "white") Moveable[i][j] = true; //이동한 최종 위치에 상대 기물이 있으면 잡을 수 있다
+                            else if (board[i][j].color == "white") Moveable[i][j] = true;
                             else Moveable[i][j] = false;
                         }
                         else Moveable[i][j] = false;
@@ -184,8 +184,8 @@ public class Chess extends Frame {
         }
     }
 
-    class Bishop extends piece{ //비숍 클래스 구현
-        Bishop(int a, int b, String c){ //생성자를 통한 초기값 설정
+    class Bishop extends piece{ //bishop
+        Bishop(int a, int b, String c){ //resets
             this.i=a;
             this.j=b;
             this.color=c;
@@ -201,7 +201,7 @@ public class Chess extends Frame {
         void setMoveable(){
             for(int i=0; i<8; i++) for(int j=0; j<8; j++) Moveable[i][j]=false;
 
-            if(this.color=="black"){ //비숍은 대각선으로 원하는 만큼 이동할 수 있다. 단, 앞에 말이 가로막고 있으면 이동할 수 없고 상대 말이면 그 말을 잡을 수 있다
+            if(this.color=="black"){ //diagonal movements of bishop
                 int i=this.i+1, j=this.j+1;
                 while(0<=i && i<8 && 0<=j && j<8){
                     if(board[i][j]==null) Moveable[i][j]=true;
@@ -210,7 +210,7 @@ public class Chess extends Frame {
                         Moveable[i][j]=true;
                         break;
                     }
-                    i++; j++; //우측 하단 방향
+                    i++; j++; //right down
                 }
 
                 i=this.i+1; j=this.j-1;
@@ -221,7 +221,7 @@ public class Chess extends Frame {
                         Moveable[i][j]=true;
                         break;
                     }
-                    i++; j--; //좌측 하단 방향
+                    i++; j--; //left down
                 }
 
                 i=this.i-1; j=this.j+1;
@@ -232,7 +232,7 @@ public class Chess extends Frame {
                         Moveable[i][j]=true;
                         break;
                     }
-                    i--; j++; //우측 상단 방향
+                    i--; j++; //right up
                 }
 
                 i=this.i-1; j=this.j-1;
@@ -243,7 +243,7 @@ public class Chess extends Frame {
                         Moveable[i][j]=true;
                         break;
                     }
-                    i--; j--; //좌측 상단 방향
+                    i--; j--; //left up
                 }
             }
 
@@ -295,8 +295,8 @@ public class Chess extends Frame {
         }
     }
 
-    class Rook extends piece{ //룩 클래스 구현
-        Rook(int a, int b, String c){ //생성자를 통한 초기값 설정
+    class Rook extends piece{ //rook / castle
+        Rook(int a, int b, String c){ //resets
             this.i=a;
             this.j=b;
             this.color=c;
@@ -310,8 +310,8 @@ public class Chess extends Frame {
         }
 
         @Override
-        void move(int a, int b){ //캐슬링 관련 규칙을 위한 Overriding
-            if(this.j==0 && this.color=="black") bqc=false; //룩이 움직이면 그 방향으로는 캐슬링할 수 없다
+        void move(int a, int b){ //override
+            if(this.j==0 && this.color=="black") bqc=false; 
             if(this.j==7 && this.color=="black") bkc=false;
             if(this.j==0 && this.color=="white") wqc=false;
             if(this.j==0 && this.color=="white") wkc=false;
@@ -324,7 +324,7 @@ public class Chess extends Frame {
             Icon=new ImageIcon("pic/"+this.color+"_"+this.name+"_"+this.boardcolor+".png");
         }
 
-        void setMoveable(){ //룩은 평행선으로 원하는 만큼 이동할 수 있다. 단, 앞에 말이 가로막고 있으면 이동할 수 없고 상대 말이면 그 말을 잡을 수 있다
+        void setMoveable(){ //movements of rook
             for(int i=0; i<8; i++) for(int j=0; j<8; j++) Moveable[i][j]=false;
             if(this.color=="black"){
                 for(int i=this.i+1; i<8; i++){ //아래쪽 방향
@@ -336,7 +336,7 @@ public class Chess extends Frame {
                     else break;
                 }
 
-                for(int i=this.i-1; i>=0; i--){ //위쪽 방향
+                for(int i=this.i-1; i>=0; i--){ //up
                     if(board[i][this.j]==null) Moveable[i][this.j]=true;
                     else if(board[i][this.j].color=="white"){
                         Moveable[i][this.j]=true;
@@ -345,7 +345,7 @@ public class Chess extends Frame {
                     else break;
                 }
 
-                for(int j=this.j+1; j<8; j++){ //오른쪽 방향
+                for(int j=this.j+1; j<8; j++){ //right
                     if(board[this.i][j]==null) Moveable[this.i][j]=true;
                     else if(board[this.i][j].color=="white"){
                         Moveable[this.i][j]=true;
@@ -354,7 +354,7 @@ public class Chess extends Frame {
                     else break;
                 }
 
-                for(int j=this.j-1; j>=0; j--){ //왼쪽 방향
+                for(int j=this.j-1; j>=0; j--){ //left
                     if(board[this.i][j]==null) Moveable[this.i][j]=true;
                     else if(board[this.i][j].color=="white"){
                         Moveable[this.i][j]=true;
@@ -404,8 +404,8 @@ public class Chess extends Frame {
         }
     }
 
-    class Queen extends piece{ //퀸 클래스 구현
-        Queen(int a, int b, String c){ //생성자를 통한 초기값 설정
+    class Queen extends piece{ //queen
+        Queen(int a, int b, String c){ //resets
             this.i=a;
             this.j=b;
             this.color=c;
@@ -418,7 +418,7 @@ public class Chess extends Frame {
             ind=5;
         }
 
-        void setMoveable(){ //퀸은 평행선으로, 대각선으로 원하는 만큼 이동할 수 있다. 단, 앞에 말이 가로막고 있으면 이동할 수 없고 상대 말이면 그 말을 잡을 수 있다
+        void setMoveable(){ //movements of queen
             for(int i=0; i<8; i++) for(int j=0; j<8; j++) Moveable[i][j]=false;
 
             if(this.color=="black"){
@@ -430,7 +430,7 @@ public class Chess extends Frame {
                         Moveable[i][j]=true;
                         break;
                     }
-                    i++; j++; //우측 하단
+                    i++; j++; //right down
                 }
 
                 i=this.i+1; j=this.j-1;
@@ -441,7 +441,7 @@ public class Chess extends Frame {
                         Moveable[i][j]=true;
                         break;
                     }
-                    i++; j--; //좌측 하단
+                    i++; j--; //left down
                 }
 
                 i=this.i-1; j=this.j+1;
@@ -452,7 +452,7 @@ public class Chess extends Frame {
                         Moveable[i][j]=true;
                         break;
                     }
-                    i--; j++; //우측 상단
+                    i--; j++; //right up
                 }
 
                 i=this.i-1; j=this.j-1;
@@ -463,10 +463,10 @@ public class Chess extends Frame {
                         Moveable[i][j]=true;
                         break;
                     }
-                    i--; j--; //좌측 상단
+                    i--; j--; //left up
                 }
 
-                for(i=this.i+1; i<8; i++){ //아래쪽
+                for(i=this.i+1; i<8; i++){ 
                     if(board[i][this.j]==null) Moveable[i][this.j]=true;
                     else if(board[i][this.j].color=="white"){
                         Moveable[i][this.j]=true;
@@ -475,7 +475,7 @@ public class Chess extends Frame {
                     else break;
                 }
 
-                for(i=this.i-1; i>=0; i--){ //위쪽
+                for(i=this.i-1; i>=0; i--){ 
                     if(board[i][this.j]==null) Moveable[i][this.j]=true;
                     else if(board[i][this.j].color=="white"){
                         Moveable[i][this.j]=true;
@@ -484,7 +484,7 @@ public class Chess extends Frame {
                     else break;
                 }
 
-                for(j=this.j+1; j<8; j++){ //오른쪽
+                for(j=this.j+1; j<8; j++){ 
                     if(board[this.i][j]==null) Moveable[this.i][j]=true;
                     else if(board[this.i][j].color=="white"){
                         Moveable[this.i][j]=true;
@@ -493,7 +493,7 @@ public class Chess extends Frame {
                     else break;
                 }
 
-                for(j=this.j-1; j>=0; j--){ //왼쪽
+                for(j=this.j-1; j>=0; j--){ 
                     if(board[this.i][j]==null) Moveable[this.i][j]=true;
                     else if(board[this.i][j].color=="white"){
                         Moveable[this.i][j]=true;
@@ -587,8 +587,8 @@ public class Chess extends Frame {
         }
     }
 
-    class King extends piece{ //킹 클래스 구현
-        King(int a, int b, String c){ //생성자를 통한 초기값 설정
+    class King extends piece{ //king
+        King(int a, int b, String c){ //resets
             this.i=a;
             this.j=b;
             this.color=c;
@@ -602,7 +602,7 @@ public class Chess extends Frame {
         }
 
         @Override
-        void move(int a, int b){ //캐슬링 규정을 위한 Overriding. 킹이 한 번 움직이면 더 이상 캐슬링 할 수 없다
+        void move(int a, int b){ //override
             if(this.color=="black") {bqc=false; bkc=false;}
             if(this.color=="white") {wqc=false; wkc=false;}
 
@@ -614,7 +614,7 @@ public class Chess extends Frame {
             Icon=new ImageIcon("pic/"+this.color+"_"+this.name+"_"+this.boardcolor+".png");
         }
 
-        void setMoveable(){ //킹은 자신 주변 1칸으로 이동할 수 있다
+        void setMoveable(){ //movements of king
             for(int i=0; i<8; i++) for(int j=0; j<8; j++) Moveable[i][j]=false;
             if(this.color=="black"){
                 for(int i=this.i-1; i<=this.i+1; i++){
@@ -646,42 +646,42 @@ public class Chess extends Frame {
     }
 
     public static void main(String[] args){
-        new Chess(); //시작
+        new Chess(); //start
     }
 
     Chess(){
-        makeGUI(); //GUI 만들기
-        initGame(); //게임 초기화
+        makeGUI(); //GUI
+        initGame(); //resets game
     }
 
-    void makeGUI() { //GUI 제작
-        setSize(w, h); //Frame 크기 설정
+    void makeGUI() { //GUI
+        setSize(w, h); //size of frame
 
-        Panel controls = new Panel(); //버튼들이 위치할 panel
-        Panel labels = new Panel(); //라벨들이 위치할 panel
-        add(controls, BorderLayout.SOUTH); //버튼들은 아래쪽
-        add(labels, BorderLayout.NORTH); //라벨들은 위쪽
+        Panel controls = new Panel(); //panel for button
+        Panel labels = new Panel(); //panel for labels
+        add(controls, BorderLayout.SOUTH); 
+        add(labels, BorderLayout.NORTH);
 
-        Font font = new Font("Arial", Font.PLAIN, 20); //폰트 설정
+        Font font = new Font("Arial", Font.PLAIN, 20); //font
 
-        lLastMove = new Label("Last Move:                  "); //초기 텍스트 설정
+        lLastMove = new Label("Last Move:                  "); 
         lWhiteTimer = new Label("White:                    ");
         lBlackTimer = new Label("Black:                    ");
-        lLastMove.setSize(new Dimension(200, 50)); //크기 설정
+        lLastMove.setSize(new Dimension(200, 50));
         lWhiteTimer.setSize(new Dimension(200, 50));
         lBlackTimer.setSize(new Dimension(200, 50));
-        lLastMove.setFont(font); //폰트 설정
+        lLastMove.setFont(font); 
         lWhiteTimer.setFont(font);
         lBlackTimer.setFont(font);
 
-        bUndo = new JButton("Undo"); //되돌리기 Button
-        bForfeit = new JButton("Forfeit"); //항복 Button
-        bDraw = new JButton("Draw"); //무승부 Button
-        bStart = new JButton("Start New Game"); //게임 시작 버튼
-        bSettime = new JButton("Time Settings"); //시간 제한 설정 버튼
-        bSetundo = new JButton("Undo Settings"); //바로가기 유무 조절
-        bUndo.setPreferredSize(new Dimension(150, 50)); //크기 설정
-        bUndo.setFont(font); //폰트 설정
+        bUndo = new JButton("Undo"); //undo move
+        bForfeit = new JButton("Forfeit"); //forfeit match
+        bDraw = new JButton("Draw"); //draw
+        bStart = new JButton("Start New Game"); //start
+        bSettime = new JButton("Time Settings"); //time
+        bSetundo = new JButton("Undo Settings"); //undo
+        bUndo.setPreferredSize(new Dimension(150, 50)); //size
+        bUndo.setFont(font); //font
         bForfeit.setPreferredSize(new Dimension(150, 50));
         bForfeit.setFont(font);
         bDraw.setPreferredSize(new Dimension(150, 50));
@@ -693,7 +693,7 @@ public class Chess extends Frame {
         bSetundo.setPreferredSize(new Dimension(200, 50));
         bSetundo.setFont(font);
 
-        labels.add(lLastMove); //panel에 추가
+        labels.add(lLastMove); //adds to panel
         labels.add(lWhiteTimer);
         labels.add(lBlackTimer);
         controls.add(bUndo);
@@ -703,27 +703,27 @@ public class Chess extends Frame {
         controls.add(bSettime);
         controls.add(bSetundo);
 
-        Panel board = new Panel(); //체스판을 나타낼 panel
-        add(board); //Frame에 추가
+        Panel board = new Panel(); //panel
+        add(board); //adds frame
         board.setLayout(null);
 
 
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
-                bBoard[i][j] = new JButton(); //체스판 한 칸
-                bBoard[i][j].setSize(sql, sql); //한 칸의 크기 설정
-                bBoard[i][j].setLocation(j * sql,i* sql+40); //한 칸의 위치 설정
-                board.add(bBoard[i][j]); //board panel에 추가
+                bBoard[i][j] = new JButton(); //one square
+                bBoard[i][j].setSize(sql, sql); //size of square
+                bBoard[i][j].setLocation(j * sql,i* sql+40); //setting of square
+                board.add(bBoard[i][j]); //adds to board panel
 
-                bBoard[i][j].addActionListener(new ClickListener(i, j)); //Listener 추가
+                bBoard[i][j].addActionListener(new ClickListener(i, j)); 
             }
         }
 
-        setVisible(true); //보이기
+        setVisible(true); 
 
-        addWindowListener(new MyWindowAdapter()); // 창닫기 버튼
+        addWindowListener(new MyWindowAdapter()); 
 
-        timer = new Timer(1000, new ActionListener() {  //타이머 설정. 1초마다 시간 1씩 감소
+        timer = new Timer(1000, new ActionListener() { 
             @Override
             public void actionPerformed(ActionEvent e) {
                 if(turn=="white") wtime--;
@@ -732,24 +732,24 @@ public class Chess extends Frame {
             }
         });
 
-        bStart.addActionListener(new ActionListener() { //다시하기 버튼 설정
+        bStart.addActionListener(new ActionListener() { //restart
             @Override
             public void actionPerformed(ActionEvent e) {
                 Label label = new Label("Restart?");
                 label.setFont(font);
-                int restart = JOptionPane.showConfirmDialog(null, label); //다시 할 지 물어보는 JOptionPane 띄우기
+                int restart = JOptionPane.showConfirmDialog(null, label); 
                 if(restart==0){
-                    initGame(); //재시작
+                    initGame(); 
                 }
             }
         });
 
-        bForfeit.addActionListener(new ActionListener() { //항복 버튼 설정
+        bForfeit.addActionListener(new ActionListener() { //forfeit
             @Override
             public void actionPerformed(ActionEvent e) {
                 Label label = new Label("ForFeit?");
                 label.setFont(font);
-                int forfeit = JOptionPane.showConfirmDialog(null, label); //항복할 지 물어보는 JOptionPane 띄우기
+                int forfeit = JOptionPane.showConfirmDialog(null, label); 
                 if(forfeit==0) {
                     Label forfeitLabel = null;
                     if (turn == "white") {
@@ -758,49 +758,49 @@ public class Chess extends Frame {
                         forfeitLabel.setText("Black Forfeits");
                     }
                     forfeitLabel.setFont(font);
-                    JOptionPane.showMessageDialog(null,forfeitLabel, "Game Over !!", JOptionPane.INFORMATION_MESSAGE); //게임이 끝났다고 알림
-                    initGame(); //재시작
+                    JOptionPane.showMessageDialog(null,forfeitLabel, "Game Over !!", JOptionPane.INFORMATION_MESSAGE); //notifies game is over
+                    initGame(); //restart
                 }
             }
         });
 
-        bUndo.addActionListener(new ActionListener() { //뒤로가기 버튼 설정
+        bUndo.addActionListener(new ActionListener() { //undo
             @Override
             public void actionPerformed(ActionEvent e){
-                if(booleanundo) undo(); //뒤로가기가 가능한 상태이면 뒤로가기
+                if(booleanundo) undo(); //undos move
             }
         });
 
-        bDraw.addActionListener(new ActionListener() { //무승부 버튼 설정
+        bDraw.addActionListener(new ActionListener() { //draw
             @Override
             public void actionPerformed(ActionEvent e){
                 Label label = new Label("Accept Draw?");
                 label.setFont(font);
-                int draw = JOptionPane.showConfirmDialog(null, label); //무승부를 받아들일 것인지 물어봄
+                int draw = JOptionPane.showConfirmDialog(null, label); //asks for draw
                 if(draw==0){
                     label.setText("Draw!!");
-                    JOptionPane.showMessageDialog(null, label, "Draw" , JOptionPane.INFORMATION_MESSAGE); //무승부임을 나타냄
-                    initGame(); //재시작
+                    JOptionPane.showMessageDialog(null, label, "Draw" , JOptionPane.INFORMATION_MESSAGE); //shows draw
+                    initGame(); //restarts
                 }
                 else if(draw==1){
                     label.setText("Draw declined");
-                    JOptionPane.showMessageDialog(null, label, "Draw declined" , JOptionPane.INFORMATION_MESSAGE); //무승부가 아님을 나타냄
+                    JOptionPane.showMessageDialog(null, label, "Draw declined" , JOptionPane.INFORMATION_MESSAGE); //not a draw
                 }
                 else{}
             }
         });
 
-        bSettime.addActionListener(new ActionListener(){ //시간 설정
+        bSettime.addActionListener(new ActionListener(){ //timer
             @Override
             public void actionPerformed(ActionEvent e){
-                Label label = new Label("Maximum time in seconds: "); //최대 시간을 초 단위로 받음
+                Label label = new Label("Maximum time in seconds: "); //max time in secs
                 label.setFont(font);
                 String s = (String) JOptionPane.showInputDialog(null, label, "Set time", JOptionPane.PLAIN_MESSAGE, null, null, "");
-                try{ //정수가 아닌 값을 입력했을 때를 위해
+                try{ 
                     MaxTime = Integer.parseInt(s);
                 }
                 catch(Exception e1){ }
-                label.setText("Increment in seconds: "); //increment(매 수마다 시간 증가분)을 초 단위로 받음
+                label.setText("Increment in seconds: "); 
                 s=(String) JOptionPane.showInputDialog(null, label, "Set increment", JOptionPane.PLAIN_MESSAGE, null, null, "");
                 try{
                     Inc = Integer.parseInt(s);
@@ -809,20 +809,20 @@ public class Chess extends Frame {
             }
         });
 
-        bSetundo.addActionListener(new ActionListener() { //뒤로가기 설정 버튼 설정
+        bSetundo.addActionListener(new ActionListener() { 
             @Override
             public void actionPerformed(ActionEvent e){
-                Label label = new Label("Allow undo?"); //뒤로가기를 활성화시키고싶은지 물어봄
+                Label label = new Label("Allow undo?");
                 label.setFont(font);
                 int undo = JOptionPane.showConfirmDialog(null, label);
                 if(undo==0){
                     label.setText("Undo activated");
-                    JOptionPane.showMessageDialog(null, label, "Undo settings" , JOptionPane.INFORMATION_MESSAGE); //활성화 알림
+                    JOptionPane.showMessageDialog(null, label, "Undo settings" , JOptionPane.INFORMATION_MESSAGE); 
                     booleanundo=true;
                 }
                 else if(undo==1){
                     label.setText("Undo inactivated");
-                    JOptionPane.showMessageDialog(null, label, "Undo settings" , JOptionPane.INFORMATION_MESSAGE); //비활성화 알림
+                    JOptionPane.showMessageDialog(null, label, "Undo settings" , JOptionPane.INFORMATION_MESSAGE); 
                     booleanundo=false;
                 }
                 else{}
@@ -830,42 +830,42 @@ public class Chess extends Frame {
         });
     }
 
-    boolean checkCheck(String s){ //특정 색에 대해 체크인지 확인하는 메소드
+    boolean checkCheck(String s){ //checks for certain color
         for(int i=0; i<8; i++){
             for(int j=0; j<8; j++){
                 if(board[i][j]!=null) if(board[i][j].color==s){
                     board[i][j].setMoveable();
                     for(int k=0; k<8; k++){
                         for(int l=0; l<8; l++){
-                            if(Moveable[k][l] && board[k][l]!=null) if(board[k][l].name=="king") return true; //움직일 수 있고 그 자리에 킹이 있으면 true 반환
+                            if(Moveable[k][l] && board[k][l]!=null) if(board[k][l].name=="king") return true; //returns true if able to move and king is present
                         }
                     }
                 }
             }
         }
-        return false; //없으면 false 반환
+        return false; //if not, false
     }
 
     void updateLastMove(String s){
-        lLastMove.setText("Last Move: "+s); //마지막 수 라벨 업데이트
+        lLastMove.setText("Last Move: "+s);
     }
 
-    void updateTime(){ //시간 업데이트
-        lWhiteTimer.setText("White: "+wtime/60+" min "+wtime%60+" sec"); //남은 시간 표시
+    void updateTime(){ //updates time
+        lWhiteTimer.setText("White: "+wtime/60+" min "+wtime%60+" sec"); //time left
         lBlackTimer.setText("Black: "+btime/60+" min "+btime%60+" sec");
-        if(wtime==0 || btime==0){ //한 쪽 시간이 다 되었을 때
+        if(wtime==0 || btime==0){ //tells time is over for turn
             Label label;
             if(wtime==0) label = new Label("White loses on time");
             else label = new Label("Black loses on time");
             label.setFont(new Font("Arial", Font.PLAIN, 20));
-            JOptionPane.showMessageDialog(null, label, "Game Over!" , JOptionPane.INFORMATION_MESSAGE); //게임 끝났다고 표시
-            initGame(); //재시작
+            JOptionPane.showMessageDialog(null, label, "Game Over!" , JOptionPane.INFORMATION_MESSAGE); //notifies that game is over
+            initGame(); //restarts
         }
     }
 
-    void undo(){ //뒤로가기 메소드
-        if(nmoves>=1) { //이미 한 번 움직인 상태에서만 뒤로가기 가능
-            bstate[nmoves--] = null; //bstate 배열에 저장된 내용을 가져오기
+    void undo(){ //method for undo
+        if(nmoves>=1) { 
+            bstate[nmoves--] = null; 
             bqc = bstate[nmoves].bqc;
             bkc = bstate[nmoves].bkc;
             wqc = bstate[nmoves].wqc;
@@ -892,7 +892,7 @@ public class Chess extends Frame {
                     }
                 }
             }
-            for (int i = 0; i < 8; i++) { //아이콘 업데이트
+            for (int i = 0; i < 8; i++) { //updates icon
                 for (int j = 0; j < 8; j++) {
                     if (board[i][j] == null) {
                         if ((i + j) % 2 == 0) bBoard[i][j].setIcon(icon_light);
@@ -905,8 +905,8 @@ public class Chess extends Frame {
         }
     }
 
-    void initGame() { //게임 시작 메소드
-        for(int i=0; i<8; i++) for(int j=0; j<8; j++) board[i][j]=null; //모든 값을 초기화
+    void initGame() { //method to start game
+        for(int i=0; i<8; i++) for(int j=0; j<8; j++) board[i][j]=null; //resets everything
         for(int i=0; i<8; i++) for(int j=0; j<8; j++) onClick[i][j]=false;
         turn = "white";
         bqc=true;
@@ -927,17 +927,17 @@ public class Chess extends Frame {
         bstate[0]=new BoardState();
         bstate[0].lastmove="";
 
-        for (int i = 0; i < 8; i++){ //폰 초기 위치 설정
+        for (int i = 0; i < 8; i++){ 
             board[1][i] = new Pawn(1, i, "black");
             board[6][i] = new Pawn(6, i, "white");
         }
-        board[0][0]= new Rook(0, 0, "black"); board[7][0] = new Rook(7, 0, "white");; board[0][7] = new Rook(0, 7, "black");; board[7][7] = new Rook(7, 7, "white");; //룩
-        board[0][1]= new Knight(0, 1, "black"); board[7][1] = new Knight(7, 1, "white"); board[0][6] = new Knight(0, 6, "black"); board[7][6] = new Knight(7, 6, "white"); //나이트
-        board[0][2]= new Bishop(0, 2, "black"); board[7][2] = new Bishop(7, 2, "white"); board[0][5] = new Bishop(0, 5, "black"); board[7][5] = new Bishop(7, 5, "white"); //비숍
-        board[0][3]= new Queen(0, 3, "black"); board[0][4]= new King(0, 4, "black"); //흑색 킹&퀸
-        board[7][3]= new Queen(7, 3, "white"); board[7][4]= new King(7, 4, "white"); //백색 킹&퀸
+        board[0][0]= new Rook(0, 0, "black"); board[7][0] = new Rook(7, 0, "white");; board[0][7] = new Rook(0, 7, "black");; board[7][7] = new Rook(7, 7, "white");; //rook
+        board[0][1]= new Knight(0, 1, "black"); board[7][1] = new Knight(7, 1, "white"); board[0][6] = new Knight(0, 6, "black"); board[7][6] = new Knight(7, 6, "white"); //knight
+        board[0][2]= new Bishop(0, 2, "black"); board[7][2] = new Bishop(7, 2, "white"); board[0][5] = new Bishop(0, 5, "black"); board[7][5] = new Bishop(7, 5, "white"); //bishop
+        board[0][3]= new Queen(0, 3, "black"); board[0][4]= new King(0, 4, "black"); //black king and queen
+        board[7][3]= new Queen(7, 3, "white"); board[7][4]= new King(7, 4, "white"); //white king and queen
 
-        for(int i=0; i<8; i++){ //아이콘 설정
+        for(int i=0; i<8; i++){ //settings for icon
             for(int j=0; j<8; j++){
                 if(board[i][j]==null && (i+j)%2 == 0) bBoard[i][j].setIcon(icon_light);
                 else if(board[i][j]==null && (i+j)%2 == 1) bBoard[i][j].setIcon(icon_dark);
@@ -945,10 +945,10 @@ public class Chess extends Frame {
             }
         }
 
-        timer.start(); //타이머 시작
+        timer.start(); //starts timer
     }
 
-    void promote(int a, int b, String s, String c){ //프로모션 메소드
+    void promote(int a, int b, String s, String c){ //method for promotion
         if(s=="Queen") board[a][b]=new Queen(a, b, c);
         if(s=="Rook") board[a][b]=new Rook(a, b, c);
         if(s=="Bishop") board[a][b]=new Bishop(a, b, c);
@@ -959,35 +959,35 @@ public class Chess extends Frame {
 
     class ClickListener implements ActionListener{
         private int i, j;
-        ClickListener(int i, int j){ //생성자로 내용물 설정
+        ClickListener(int i, int j){ 
             this.i=i;
             this.j=j;
         }
 
         @Override
         public void actionPerformed(ActionEvent e){
-            if(onClick[i][j]) { //같은 곳을 두 번 클릭하면
-                onClick[i][j]=false; //클릭하지 않은 상태로 돌아감
+            if(onClick[i][j]) { //if same square is clicked twice
+                onClick[i][j]=false; //returns to unclicked state
                 firstClick=true;
                 bBoard[i][j].setIcon(board[i][j].Icon);
             }
-            else if(firstClick==true){ //첫 번째 클릭이면
-                if(board[i][j]!=null) { //말이 위에 있는 경우에만
-                    if(board[i][j].color==turn){ //차례가 맞는 경우에만
-                        firstClick = false; //다음 클릭은 두 번째 클릭
-                        onClick[i][j] = true; //이미 클릭했다고 표기
-                        ci = i; //클릭한 값 저장
+            else if(firstClick==true){ //if clicked once
+                if(board[i][j]!=null) { //only when a piece is present
+                    if(board[i][j].color==turn){ //if designated turn
+                        firstClick = false; //next click is shown
+                        onClick[i][j] = true; //to be already clicked
+                        ci = i; //stores clicked setting
                         cj = j;
-                        board[i][j].setMoveable(); //움직일 수 있는 범위 저장
-                        bBoard[i][j].setIcon(board[i][j].clickIcon); //클릭했다고 아이콘 변경
+                        board[i][j].setMoveable(); //saves possible movements
+                        bBoard[i][j].setIcon(board[i][j].clickIcon); //changes icon to clicked
                     }
                 }
             }
-            else if(Moveable[i][j]==true){ //두 번째 클릭에서 움직일 수 있는 공간을 택하면
+            else if(Moveable[i][j]==true){ 
                 Thread thread = new Thread(new Runnable(){
                     @Override
                     public void run(){
-                        bstate[nmoves].bqc=bqc; //현재 상태를 bstate 배열에 저장
+                        bstate[nmoves].bqc=bqc; 
                         bstate[nmoves].bkc=bkc;
                         bstate[nmoves].wqc=wqc;
                         bstate[nmoves].wkc=wkc;
@@ -1001,9 +1001,9 @@ public class Chess extends Frame {
                             }
                         }
                         bstate[nmoves].turn=turn;
-                        nmoves++; //한 수 움직임
+                        nmoves++; 
 
-                        if(board[ci][cj].name=="king"){ //캐슬링 관련 처리(한 번에 두 개의 말을 이동하므로)
+                        if(board[ci][cj].name=="king"){ 
                             if(board[ci][cj].color=="black"){
                                 if(bqc && i==0 && j==2){
                                     board[0][3]=board[0][0];
@@ -1042,20 +1042,20 @@ public class Chess extends Frame {
                             }
                         }
 
-                        board[i][j]=board[ci][cj]; //말 클래스 이동
-                        board[ci][cj] = null; //기존에 있던 자리는 null
-                        board[i][j].move(i, j); //클래스 내부 값 변경
+                        board[i][j]=board[ci][cj]; 
+                        board[ci][cj] = null; 
+                        board[i][j].move(i, j); 
 
-                        bBoard[i][j].setIcon(board[i][j].Icon); //아이콘 변경
+                        bBoard[i][j].setIcon(board[i][j].Icon); 
                         if((ci+cj)%2 == 0 ) bBoard[ci][cj].setIcon(icon_light);
                         else bBoard[ci][cj].setIcon(icon_dark);
-                        firstClick=true; //클릭하지 않은 상태로 돌아감
+                        firstClick=true; 
                         onClick[ci][cj]=false;
                         onClick[i][j]=false;
 
-                        updateLastMove(NumtoAl[cj]+(8-ci)+" to "+NumtoAl[j]+(8-i)); //마지막 수 업데이트
+                        updateLastMove(NumtoAl[cj]+(8-ci)+" to "+NumtoAl[j]+(8-i)); 
 
-                        if(checkCheck(turn)){ //만약 체크이면
+                        if(checkCheck(turn)){ 
                             Label check = new Label("Check!");
                             check.setFont(new Font("Arial", Font.PLAIN, 20));
                             JOptionPane.showMessageDialog(null, check, "Check!!!" , JOptionPane.INFORMATION_MESSAGE);
@@ -1071,14 +1071,14 @@ public class Chess extends Frame {
                             turn="white";
                         }
 
-                        bstate[nmoves]=new BoardState(); //새 BoardState를 만들어서
-                        bstate[nmoves].lastmove=NumtoAl[cj]+(8-ci)+" to "+NumtoAl[j]+(8-i); //이전 수 저장
+                        bstate[nmoves]=new BoardState(); 
+                        bstate[nmoves].lastmove=NumtoAl[cj]+(8-ci)+" to "+NumtoAl[j]+(8-i); 
 
-                        if(checkCheck(turn)){ //만약 자신의 킹이 체크 상태가 되면 잘못된 수
+                        if(checkCheck(turn)){ 
                             Label illegal = new Label("Illegal Move!");
                             illegal.setFont(new Font("Arial", Font.PLAIN, 20));
-                            JOptionPane.showMessageDialog(null, illegal, "Illegal Move!!!" , JOptionPane.INFORMATION_MESSAGE); //잘못된 수임을 알려줌
-                            undo(); //뒤로가기
+                            JOptionPane.showMessageDialog(null, illegal, "Illegal Move!!!" , JOptionPane.INFORMATION_MESSAGE); 
+                            undo(); 
                         }
                     }
                 });
